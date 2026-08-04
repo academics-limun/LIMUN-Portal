@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Delegate Allocations Portal</title>
+</head>
+<style>
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+   /* --- setting up the colour coding and graphic elements--- */
+  :root {
+    --indigo: #16112E;
+    --indigo-deep: #0E0A20;
+    --elizabeth: #2B1C50;
+    --gold-1: #FFC06B;
+    --gold-2: #BE7800;
+    --central: #CD1B46;
+    --circle: #FF9F00;
+    --dlr: #078370;
+    --hair: rgba(237,234,246,.08);
+    --muted: rgba(237,234,246,.55);
+    --serif: 'Butler', 'Georgia','Times New Roman', serif;
+    --sans: 'Futura PT', 'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif;
+  }
+
+  body {
+    background: var(--indigo-deep);
+    color: var(--gold-1);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+}
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  .topbar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 28px;
+    background: var(--indigo);
+    border-bottom: 1px solid var(--hair);
+  }
+  .brand { font-weight: 700; }
+  .search {
+    justify-self: center;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    color: var(--muted);
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--hair);
+    border-radius: 100px;
+    padding: 8px 14px;
+  }
+  .avatar-wrap {
+    position: absolute;
+    top: 50%;
+    right: 28px;
+    transform: translateY(-50%);
+  }
+  .avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--gold-1);
+    color: #1c1330;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .75rem; font-weight: 700;
+  }
+  .avatar-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 190px;
+    background: var(--elizabeth);
+    border: 1px solid var(--hair);
+    border-radius: 14px;
+    padding: 8px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.35);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity .15s ease, transform .15s ease;
+    z-index: 20;
+  }
+  .avatar-menu.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  .avatar-menu-label {
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+    padding: 6px 10px 8px;
+  }
+  .avatar-menu-item {
+    display: block;
+    padding: 9px 10px;
+    border-radius: 9px;
+    font-size: .85rem;
+    color: var(--gold-1);
+    text-decoration: none;
+  }
+  .avatar-menu-item:hover { background: rgba(255,255,255,.06); }
+   .tabbar {
+    display: flex;
+    gap: 6px;
+    padding: 12px 28px;
+    background: var(--indigo-deep);
+    border-bottom: 1px solid var(--hair);
+  }
+  .tab {
+    padding: 9px 16px;
+    border-radius: 100px;
+    color: var(--gold-1);
+    font-size: .85rem;
+  }
+  .tab:hover { background: rgba(255,255,255,.05); }
+  .tab.on {
+    background: var(--gold-2);
+    color: #1c1330;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr) 220px;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 28px;
+    align-items: start;
+  }
+
+  .sidebar {
+    background: var(--elizabeth);
+    border: 1px solid var(--hair);
+    border-radius: 20px;
+    padding: 18px;
+    position: sticky;
+    top: 28px;
+  }
+  .side-title {
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .side-nav { display: flex; flex-direction: column; gap: 4px; }
+  .side-link {
+    display: block;
+    padding: 9px 12px;
+    border-radius: 10px;
+    color: var(--gold-1);
+    font-size: .85rem;
+    text-decoration: none;
+  }
+  .side-link:hover { background: rgba(255,255,255,.05); }
+  .side-link.on { background: var(--gold-2); color: #1c1330; font-weight: 600; }
+
+  .activity-item {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--hair);
+    font-size: .8rem;
+    color: var(--muted);
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-item strong { display: block; font-size: .85rem; color: var(--gold-1); margin-bottom: 2px; }
+
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+  }
+  .card {
+    background: var(--elizabeth);
+    border: 3px solid var(--hair);
+    border-radius: 20px;
+    padding: 20px;
+  }
+  .span2 { grid-column: span 2; }
+
+  .k { font-size: .75rem; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .v { font-family: Georgia, serif; font-size: 2rem; }
+
+  .todo { margin-top: 14px; }
+  .todo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .todo-header .k { margin-bottom: 0; }
+  .todo-reset {
+    font-size: .7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--muted);
+    padding: 4px 10px;
+    border-radius: 100px;
+    border: 1px solid var(--hair);
+  }
+  .todo-reset:hover { color: #ff6b8f; border-color: rgba(255,107,143,.4); }
+  .todo-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .todo-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .todo-list li label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+    font-size: .9rem;
+    color: var(--gold-1);
+  }
+  .todo-list input[type="checkbox"] {
+    flex-shrink: 0;
+    width: 16px; height: 16px;
+    accent-color: var(--gold-2);
+    cursor: pointer;
+  }
+  .todo-text {
+    flex: 1;
+    min-width: 0;
+    outline: none;
+    cursor: text;
+    border-radius: 4px;
+  }
+  .todo-text:focus {
+    outline: 1px dashed var(--hair);
+    padding: 0 4px;
+  }
+  .todo-list li:has(input:checked) .todo-text {
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+  .todo-remove {
+    flex-shrink: 0;
+    font-size: 1rem;
+    line-height: 1;
+    color: var(--muted);
+    padding: 2px 7px;
+    border-radius: 6px;
+  }
+  .todo-remove:hover { background: rgba(255,255,255,.08); color: #ff6b8f; }
+
+  .todo-add {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .todo-input {
+    flex: 1;
+    min-width: 0;
+    font-family: inherit;
+    font-size: .85rem;
+    color: var(--gold-1);
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--hair);
+    border-radius: 100px;
+    padding: 8px 14px;
+  }
+  .todo-input::placeholder { color: var(--muted); }
+  .todo-add-btn {
+    flex-shrink: 0;
+    font-size: .8rem;
+    font-weight: 600;
+    color: #1c1330;
+    background: var(--gold-2);
+    padding: 8px 16px;
+    border-radius: 100px;
+  }
+  .todo-add-btn:hover { background: var(--gold-1); }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+  }
+
+.pill {
+    display: inline-block;
+    font-size: .7rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 100px;
+    margin-top: 8px;
+  }
+  .pill.gold { background: rgba(255,192,107,.15); color: var(--gold-1); }
+  .pill.dlr  { background: rgba(7,131,112,.18);  color: #37d3b6; }
+  .pill.central { background: rgba(205,27,70,.16); color: #ff6b8f; }
+
+  /* --- gradient background lines based off bb --- */
+  .tube-lines {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .tube-lines .stop-gold-a    { stop-color: var(--elizabeth); }
+  .tube-lines .stop-gold-b    { stop-color: var(--indigo); }
+  .tube-lines .stop-central-a { stop-color: var(--central); }
+  .tube-lines .stop-central-b { stop-color: #ff6b8f; }
+  .tube-lines .stop-circle-a  { stop-color: var(--circle); }
+  .tube-lines .stop-circle-b  { stop-color: #ffcf80; }
+  .tube-lines .stop-dlr-a     { stop-color: var(--dlr); }
+  .tube-lines .stop-dlr-b     { stop-color: #37d3b6; }
+
+  .tube-line {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: .6;
+    stroke-dasharray: 2600;
+    stroke-dashoffset: 2600;
+    animation: tube-draw 2.4s cubic-bezier(.25,.7,.3,1) forwards;
+  }
+  @keyframes tube-draw {
+    to { stroke-dashoffset: 0; }
+  }
+
+  .topbar { position: relative; z-index: 3; }
+  .tabbar { position: relative; z-index: 2; }
+  .layout { position: relative; z-index: 1; }
+</style>
+</head>
+<body>
+
+<svg class="tube-lines" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <filter id="tubeGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <linearGradient id="gGold" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="320" y2="0" spreadMethod="repeat">
+      <stop class="stop-gold-a" offset="0%"/>
+      <stop class="stop-gold-b" offset="50%"/>
+      <stop class="stop-gold-a" offset="100%"/>
+      <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="320 0" dur="5s" repeatCount="indefinite"/>
+    </linearGradient>
+
+    <linearGradient id="gCentral" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="320" y2="0" spreadMethod="repeat">
+      <stop class="stop-central-a" offset="0%"/>
+      <stop class="stop-central-b" offset="50%"/>
+      <stop class="stop-central-a" offset="100%"/>
+      <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="320 0" dur="6s" repeatCount="indefinite"/>
+    </linearGradient>
+
+    <linearGradient id="gCircle" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="320" y2="0" spreadMethod="repeat">
+      <stop class="stop-circle-a" offset="0%"/>
+      <stop class="stop-circle-b" offset="50%"/>
+      <stop class="stop-circle-a" offset="100%"/>
+      <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="320 0" dur="7s" repeatCount="indefinite"/>
+    </linearGradient>
+
+    <linearGradient id="gDlr" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="320" y2="0" spreadMethod="repeat">
+      <stop class="stop-dlr-a" offset="0%"/>
+      <stop class="stop-dlr-b" offset="50%"/>
+      <stop class="stop-dlr-a" offset="100%"/>
+      <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="320 0" dur="5.5s" repeatCount="indefinite"/>
+    </linearGradient>
+  </defs>
+
+  <path class="tube-line" style="animation-delay:.1s" stroke="url(#gGold)"    filter="url(#tubeGlow)" d="M -60,140 L 240,140 Q 300,140 342.4,182.4 L 457.6,297.6 Q 500,340 560,340 L 840,340 Q 900,340 942.4,297.6 L 1057.6,182.4 Q 1100,140 1160,140 L 1560,140"/>
+  <path class="tube-line" style="animation-delay:.5s" stroke="url(#gCircle)" filter="url(#tubeGlow)" d="M -60,420 L 160,420 Q 220,420 262.4,377.6 L 377.6,262.4 Q 420,220 480,220 L 960,220 Q 1020,220 1062.4,262.4 L 1177.6,377.6 Q 1220,420 1280,420 L 1560,420"/>
+  <path class="tube-line" style="animation-delay:.3s" stroke="url(#gCentral)" filter="url(#tubeGlow)" d="M -60,720 L 200,720 Q 260,720 302.4,677.6 L 417.6,562.4 Q 460,520 520,520 L 800,520 Q 860,520 902.4,562.4 L 1017.6,677.6 Q 1060,720 1120,720 L 1560,720"/>
+  <path class="tube-line" style="animation-delay:.7s" stroke="url(#gDlr)"    filter="url(#tubeGlow)" d="M -60,860 L 280,860 Q 340,860 384.4,819.6 L 515.6,700.4 Q 560,660 620,660 L 880,660 Q 940,660 984.4,700.4 L 1115.6,819.6 Q 1160,860 1220,860 L 1560,860"/>
+</svg>
+
+<div class="topbar">
+  <div class="brand">Delegate Allocation Portal</div>
+  <div class="avatar-wrap">
+    <button type="button" class="avatar" id="avatarBtn" aria-haspopup="true" aria-expanded="false">DA</button>
+    <div class="avatar-menu" id="avatarMenu">
+      <div class="avatar-menu-label">Switch portal</div>
+      <a class="avatar-menu-item" href="../Academics Portal.html">Academics Portal</a>
+      <a class="avatar-menu-item" href="#">Finance Portal</a>
+    </div>
+  </div>
+</div>
+
+ 
+<div class="layout">
+  <aside class="sidebar sidebar-left">
+    <div class="side-title">Menu</div>
+    <nav class="side-nav">
+      <a class="side-link on" href="#">Dashboard</a>
+      <a class="side-link" href="#">Delegate Overview</a>
+      <a class="side-link" href="#">Committee Management</a>
+      <a class="side-link" href="#">Delegation Management</a>
+      <a class="side-link" href="#">User Interface (DEMO)</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="bento">
+      <div class="card span2">
+        <div class="k">Total registered</div>
+        <div class="v">1,200</div>
+        <span class="pill gold">↑ 4.2%</span>
+      </div>
+      <div class="card span2">
+        <div class="k">Allocations Confirmed</div>
+        <div class="v">459</div>
+        <span class="pill dlr">on track</span>
+      </div>
+      <div class="card span2">
+        <div class="k">Preferences Received</div>
+        <div class="v">373</div>
+        <span class="pill central">to be finished</span>
+      </div>
+    </div>
+
+    <div class="card todo">
+      <div class="todo-header">
+        <div class="k">To-Do</div>
+        <button type="button" class="todo-reset" id="todoReset">Reset</button>
+      </div>
+      <ul class="todo-list" id="todoList"></ul>
+      <form class="todo-add" id="todoAddForm">
+        <input type="text" class="todo-input" placeholder="Add a task…" maxlength="120">
+        <button type="submit" class="todo-add-btn">Add</button>
+      </form>
+    </div>
+  </main>
+
+  <aside class="sidebar sidebar-right">
+    <div class="side-title">Activity</div>
+    <div class="activity-item"><strong>C.Hepke</strong>submitted preferences · 2m ago</div>
+    <div class="activity-item"><strong>University of Bath</strong>confirmed 12 delegates · 18m ago</div>
+    <div class="activity-item"><strong>O.Mackie</strong>allocation updated · 1h ago</div>
+    <div class="activity-item"><strong>LSE</strong>fee payment received · 3h ago</div>
+  </aside>
+</div>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+ 
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      tabs.forEach(t => t.classList.remove('on'));
+      tab.classList.add('on');
+      console.log('switched to:', tab.dataset.id);
+    });
+  });
+
+  function countUp(el, target, duration) {
+    const start = performance.now();
+    function tick(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      el.textContent = Math.floor(progress * target).toLocaleString();
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  countUp(document.querySelector('.v'), 1200, 900);
+
+  const avatarBtn = document.getElementById('avatarBtn');
+  const avatarMenu = document.getElementById('avatarMenu');
+
+  function closeAvatarMenu() {
+    avatarMenu.classList.remove('open');
+    avatarBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  avatarBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const isOpen = avatarMenu.classList.toggle('open');
+    avatarBtn.setAttribute('aria-expanded', String(isOpen));
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!avatarMenu.contains(e.target) && e.target !== avatarBtn) closeAvatarMenu();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeAvatarMenu();
+  });
+
+  const TODO_KEY = 'daia-todos';
+  const defaultTodos = [
+    { text: 'Follow up with ExMUN for their delegation allocatioN', checked: false },
+    { text: 'Ask ICC to confirm delegate applications', checked: true },
+    { text: 'Replace Head Delegate for SIMUN', checked: false },
+  ];
+
+
+  const todoList = document.getElementById('todoList');
+  const todoAddForm = document.getElementById('todoAddForm');
+  const todoInput = todoAddForm.querySelector('.todo-input');
+
+  function makeTodoItem(text, checked) {
+    const li = document.createElement('li');
+
+    const label = document.createElement('label');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = !!checked;
+
+    const span = document.createElement('span');
+    span.className = 'todo-text';
+    span.contentEditable = 'true';
+    span.textContent = text;
+
+    label.appendChild(checkbox);
+    label.appendChild(span);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'todo-remove';
+    removeBtn.setAttribute('aria-label', 'Remove task');
+    removeBtn.textContent = '×';
+
+    li.appendChild(label);
+    li.appendChild(removeBtn);
+    return li;
+  }
+
+  function saveTodos() {
+    const items = Array.from(todoList.querySelectorAll('li')).map(function(li) {
+      return {
+        text: li.querySelector('.todo-text').textContent.trim(),
+        checked: li.querySelector('input[type="checkbox"]').checked,
+      };
+    });
+    localStorage.setItem(TODO_KEY, JSON.stringify(items));
+  }
+
+  function loadTodos() {
+    let items = defaultTodos;
+    const raw = localStorage.getItem(TODO_KEY);
+    if (raw) {
+      try { items = JSON.parse(raw); } catch (e) { items = defaultTodos; }
+    }
+    todoList.innerHTML = '';
+    items.forEach(function(item) {
+      todoList.appendChild(makeTodoItem(item.text, item.checked));
+    });
+  }
+
+  todoList.addEventListener('click', function(e) {
+    if (e.target.classList.contains('todo-remove')) {
+      e.target.closest('li').remove();
+      saveTodos();
+    }
+  });
+
+  todoList.addEventListener('change', function(e) {
+    if (e.target.type === 'checkbox') saveTodos();
+  });
+
+  todoList.addEventListener('focusout', function(e) {
+    if (e.target.classList.contains('todo-text')) {
+      if (!e.target.textContent.trim()) e.target.closest('li').remove();
+      saveTodos();
+    }
+  });
+
+  todoList.addEventListener('keydown', function(e) {
+    if (e.target.classList.contains('todo-text') && e.key === 'Enter') {
+      e.preventDefault();
+      e.target.blur();
+    }
+  });
+
+  todoAddForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const text = todoInput.value.trim();
+    if (!text) return;
+    todoList.appendChild(makeTodoItem(text, false));
+    todoInput.value = '';
+    saveTodos();
+  });
+
+  document.getElementById('todoReset').addEventListener('click', function() {
+    if (!confirm('Reset to-do list to defaults? This clears your saved tasks.')) return;
+    localStorage.removeItem(TODO_KEY);
+    loadTodos();
+  });
+
+  loadTodos();
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
