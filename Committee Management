@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Committee Management — Delegate Allocations Portal</title>
+</head>
+<style>
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --indigo: #16112E;
+    --indigo-deep: #0E0A20;
+    --elizabeth: #2B1C50;
+    --gold-1: #FFC06B;
+    --gold-2: #BE7800;
+    --central: #CD1B46;
+    --circle: #FF9F00;
+    --dlr: #078370;
+    --hair: rgba(237,234,246,.08);
+    --muted: rgba(237,234,246,.55);
+    --serif: 'Butler', 'Georgia','Times New Roman', serif;
+    --sans: 'Futura PT', 'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif;
+  }
+
+  body {
+    background: var(--indigo-deep);
+    color: var(--gold-1);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    padding-top: 118px;
+  }
+
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+  .topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 28px;
+    background: var(--indigo);
+    border-bottom: 1px solid var(--hair);
+    z-index: 6;
+  }
+  .brand { font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .brand-logo { height: 28px; width: auto; display: block; }
+  .avatar-wrap { position: absolute; top: 50%; right: 28px; transform: translateY(-50%); }
+  .avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--gold-1);
+    color: #1c1330;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .75rem; font-weight: 700;
+  }
+  .avatar-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 190px;
+    background: var(--elizabeth);
+    border: 1px solid var(--hair);
+    border-radius: 14px;
+    padding: 8px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.35);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity .15s ease, transform .15s ease;
+    z-index: 20;
+  }
+  .avatar-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
+  .avatar-menu-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 6px 10px 8px; }
+  .avatar-menu-item { display: block; padding: 9px 10px; border-radius: 9px; font-size: .85rem; color: var(--gold-1); text-decoration: none; }
+  .avatar-menu-item:hover { background: rgba(255,255,255,.06); }
+
+  .menu-fixed {
+    position: fixed;
+    top: 63px;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 28px;
+    background: var(--elizabeth);
+    border-bottom: 1px solid var(--hair);
+    overflow-x: auto;
+    z-index: 5;
+  }
+  .menu-fixed .side-title { margin: 0; flex-shrink: 0; white-space: nowrap; }
+  .side-title { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .side-nav { display: flex; flex-direction: row; flex: 1; gap: 4px; min-width: 0; }
+  .side-link {
+    flex: 1 1 0;
+    min-width: 120px;
+    display: block;
+    padding: 9px 12px;
+    border-radius: 10px;
+    color: var(--gold-1);
+    font-size: .85rem;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .side-link:hover { background: rgba(255,255,255,.05); }
+  .side-link.on { background: var(--gold-2); color: #1c1330; font-weight: 600; }
+
+  .layout {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px;
+  }
+
+  .card {
+    background: var(--elizabeth);
+    border: 3px solid var(--hair);
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .summary-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+  .summary-row .stat { padding: 0 6px; }
+  .summary-row .stat:not(:last-child) { border-right: 1px solid var(--hair); }
+  .summary-row .k { font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 8px; }
+  .summary-row .v { font-family: Georgia, serif; font-size: 1.8rem; }
+
+  .pill {
+    display: inline-block;
+    font-size: .7rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 100px;
+  }
+  .pill.gold { background: rgba(255,192,107,.15); color: var(--gold-1); }
+  .pill.dlr  { background: rgba(7,131,112,.18);  color: #37d3b6; }
+  .pill.central { background: rgba(205,27,70,.16); color: #ff6b8f; }
+  .pill.circle { background: rgba(255,159,0,.16); color: var(--circle); }
+
+  .page-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .page-head h1 { font-family: var(--serif); font-weight: 400; font-size: 1.4rem; color: var(--gold-1); }
+  .page-head p { font-size: .8rem; color: var(--muted); margin-top: 4px; }
+
+  .add-btn {
+    flex-shrink: 0;
+    font-size: .8rem;
+    font-weight: 600;
+    color: #1c1330;
+    background: var(--gold-2);
+    padding: 9px 18px;
+    border-radius: 100px;
+  }
+  .add-btn:hover { background: var(--gold-1); }
+
+  .table-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+  .table-search {
+    flex: 1;
+    min-width: 180px;
+    max-width: 280px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--hair);
+    border-radius: 100px;
+    padding: 8px 14px;
+    color: var(--gold-1);
+    font-family: inherit;
+    font-size: .85rem;
+  }
+  .table-search::placeholder { color: var(--muted); }
+  .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filter-chip {
+    padding: 7px 14px;
+    border-radius: 100px;
+    font-size: .8rem;
+    color: var(--gold-1);
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--hair);
+  }
+  .filter-chip:hover { background: rgba(255,255,255,.08); }
+  .filter-chip.on { background: var(--gold-2); color: #1c1330; font-weight: 600; border-color: transparent; }
+
+  .is-hidden { display: none !important; }
+
+  .table-wrap { overflow-x: auto; margin-top: 18px; }
+  .committee-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  .committee-table th {
+    text-align: left;
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--hair);
+    white-space: nowrap;
+  }
+  .committee-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--hair);
+    color: var(--gold-1);
+    vertical-align: top;
+  }
+  .committee-table tr:last-child td { border-bottom: none; }
+  .committee-row { cursor: pointer; transition: background-color .15s ease; }
+  .committee-row:hover { background: rgba(255,255,255,.03); }
+  .committee-row:focus-visible { outline: 2px solid var(--gold-1); outline-offset: -2px; }
+
+  .bento-name { font-family: var(--serif); font-weight: 400; color: var(--gold-1); line-height: 1.2; font-size: 1rem; }
+  .bento-sub { display: block; font-size: .75rem; color: var(--muted); margin-top: 2px; }
+  .bento-topic { font-size: .8rem; color: var(--gold-1); opacity: .85; }
+  .bento-chairs { font-size: .8rem; color: var(--gold-1); }
+  .chair-sub { display: block; font-size: .72rem; color: var(--muted); margin-top: 2px; }
+
+  .capacity-bar-wrap { display: flex; align-items: center; gap: 8px; min-width: 140px; }
+  .capacity-bar { flex: 1; min-width: 60px; height: 6px; border-radius: 100px; background: rgba(255,255,255,.08); overflow: hidden; }
+  .capacity-bar-fill { height: 100%; background: #37d3b6; border-radius: 100px; }
+  .capacity-bar-fill.full { background: #ff6b8f; }
+  .capacity-label { font-size: .75rem; color: var(--muted); white-space: nowrap; }
+  .table-empty { display: none; padding: 24px 0; text-align: center; color: var(--muted); font-size: .85rem; }
+  .table-empty.show { display: block; }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(14,10,32,.72);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 50;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .18s ease;
+  }
+  .modal-overlay.open { opacity: 1; visibility: visible; }
+  .modal-window {
+    background: var(--elizabeth);
+    border: 1px solid var(--hair);
+    border-radius: 24px;
+    width: min(680px, 100%);
+    max-height: 84vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 60px rgba(0,0,0,.45);
+    transform: translateY(12px);
+    transition: transform .18s ease;
+  }
+  .modal-overlay.open .modal-window { transform: translateY(0); }
+  .modal-header {
+    padding: 22px 24px;
+    border-bottom: 1px solid var(--hair);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .modal-header h2 { font-family: var(--serif); font-weight: 400; font-size: 1.3rem; color: var(--gold-1); }
+  .modal-header-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .modal-close {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.05);
+    font-size: 1rem;
+    line-height: 1;
+    color: var(--gold-1);
+  }
+  .modal-close:hover { background: rgba(255,255,255,.1); }
+  .modal-body { padding: 20px 24px; overflow-y: auto; }
+  .modal-section-title { font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 20px 0 10px; }
+  .seat-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  .seat-table th {
+    text-align: left;
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--hair);
+    white-space: nowrap;
+  }
+  .seat-table td { padding: 9px 10px; border-bottom: 1px solid var(--hair); color: var(--gold-1); }
+  .seat-table tr:last-child td { border-bottom: none; }
+  .seat-table .seat-delegate-empty { color: var(--muted); }
+  .seat-empty { font-size: .8rem; color: var(--muted); padding: 10px 0; }
+
+  @media (max-width: 900px) {
+    .summary-row { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 700px) {
+    .table-controls { flex-direction: column; align-items: stretch; }
+    .table-search { max-width: none; }
+  }
+
+  .tube-lines {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .tube-lines .stop-gold-a    { stop-color: var(--elizabeth); }
+  .tube-lines .stop-gold-b    { stop-color: var(--indigo); }
+  .tube-lines .stop-central-a { stop-color: var(--central); }
+  .tube-lines .stop-central-b { stop-color: #ff6b8f; }
+  .tube-lines .stop-circle-a  { stop-color: var(--circle); }
+  .tube-lines .stop-circle-b  { stop-color: #ffcf80; }
+  .tube-lines .stop-dlr-a     { stop-color: var(--dlr); }
+  .tube-lines .stop-dlr-b     { stop-color: #37d3b6; }
+
+  .tube-line {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: .6;
+    stroke-dasharray: 2600;
+    stroke-dashoffset: 2600;
+    animation: tube-draw 2.4s cubic-bezier(.25,.7,.3,1) forwards;
+  }
+  @keyframes tube-draw {
+    to { stroke-dashoffset: 0; }
+  }
+
+</style>
+</head>
+<body>
+
+<svg class="tube-lines" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <filter id="tubeGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <linearGradient id="gGold" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="320" y2="0" spreadMethod="repeat">
+      <stop class="stop-gold-a" offset="0%"/>
+      <stop class="stop-gold-b" offset="50%"/>
+      <stop class="stop-gold-a" offset="100%"/>
+      <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="320 0" dur="5s" repeatCount="indefinite"/>
+    </linearGradient>
+
+    <linearGradient id="gCentral" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="320" y2="0" spreadMethod="repeat">
+      <stop class="stop-central-a" offset="0%"/>
+      <stop class="stop-central-b" offset="50%"/>
+      <stop class="stop-central-a" offset="100%"/>
+      <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="320 0" dur="6s" repeatCount="indefinite"/>
+    </linearGradient>
+
+    <linearGradient id="gCircle" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="320" y2="0" spreadMethod="repeat">
+      <stop class="stop-circle-a" offset="0%"/>
+      <stop class="stop-circle-b" offset="50%"/>
+      <stop class="stop-circle-a" offset="100%"/>
+      <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="320 0" dur="7s" repeatCount="indefinite"/>
+    </linearGradient>
+
+    <linearGradient id="gDlr" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="320" y2="0" spreadMethod="repeat">
+      <stop class="stop-dlr-a" offset="0%"/>
+      <stop class="stop-dlr-b" offset="50%"/>
+      <stop class="stop-dlr-a" offset="100%"/>
+      <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="320 0" dur="5.5s" repeatCount="indefinite"/>
+    </linearGradient>
+  </defs>
+
+  <path class="tube-line" style="animation-delay:.1s" stroke="url(#gGold)"    filter="url(#tubeGlow)" d="M -60,140 L 240,140 Q 300,140 342.4,182.4 L 457.6,297.6 Q 500,340 560,340 L 840,340 Q 900,340 942.4,297.6 L 1057.6,182.4 Q 1100,140 1160,140 L 1560,140"/>
+  <path class="tube-line" style="animation-delay:.5s" stroke="url(#gCircle)" filter="url(#tubeGlow)" d="M -60,420 L 160,420 Q 220,420 262.4,377.6 L 377.6,262.4 Q 420,220 480,220 L 960,220 Q 1020,220 1062.4,262.4 L 1177.6,377.6 Q 1220,420 1280,420 L 1560,420"/>
+  <path class="tube-line" style="animation-delay:.3s" stroke="url(#gCentral)" filter="url(#tubeGlow)" d="M -60,720 L 200,720 Q 260,720 302.4,677.6 L 417.6,562.4 Q 460,520 520,520 L 800,520 Q 860,520 902.4,562.4 L 1017.6,677.6 Q 1060,720 1120,720 L 1560,720"/>
+  <path class="tube-line" style="animation-delay:.7s" stroke="url(#gDlr)"    filter="url(#tubeGlow)" d="M -60,860 L 280,860 Q 340,860 384.4,819.6 L 515.6,700.4 Q 560,660 620,660 L 880,660 Q 940,660 984.4,700.4 L 1115.6,819.6 Q 1160,860 1220,860 L 1560,860"/>
+</svg>
+
+<div class="topbar">
+  <div class="brand">
+    <img class="brand-logo" src="assets/Logo 2027 - Gold.png" alt="LIMUN logo">
+    Delegate Allocation Portal
+  </div>
+  <div class="avatar-wrap">
+    <button type="button" class="avatar" id="avatarBtn" aria-haspopup="true" aria-expanded="false">DA</button>
+    <div class="avatar-menu" id="avatarMenu">
+      <div class="avatar-menu-label">Switch portal</div>
+      <a class="avatar-menu-item" href="../Academics Portal.html">Academics Portal</a>
+      <a class="avatar-menu-item" href="#">Finance Portal</a>
+    </div>
+  </div>
+</div>
+
+<aside class="menu-fixed">
+  <div class="side-title">Menu</div>
+  <nav class="side-nav">
+    <a class="side-link" href="Affairs Home Page.html">Dashboard</a>
+    <a class="side-link" href="Delegate Management.html">Delegate Management</a>
+    <a class="side-link on" href="#">Committee Management</a>
+    <a class="side-link" href="Delegation Management.html">Delegation Management</a>
+    <a class="side-link" href="#">User Interface (DEMO)</a>
+  </nav>
+</aside>
+
+<main class="layout">
+  <div class="card summary-row">
+    <div class="stat">
+      <div class="k">Total Committees</div>
+      <div class="v">32</div>
+    </div>
+    <div class="stat">
+      <div class="k">Delegate Capacity</div>
+      <div class="v">1200</div>
+    </div>
+    <div class="stat">
+      <div class="k">Seats Filled</div>
+      <div class="v">574</div>
+    </div>
+    <div class="stat">
+      <div class="k">Spaces Available</div>
+      <div class="v">626 / 1200</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="page-head">
+      <div>
+        <h1>Committee Management Overview</h1>
+      </div>
+    </div>
+
+    <div class="table-controls">
+      <input type="text" class="table-search" id="committeeSearch" placeholder="Search by committee or chair">
+      <div class="filter-chips">
+        <button type="button" class="filter-chip on" data-status="all">All</button>
+        <button type="button" class="filter-chip" data-status="allocation available">Allocation Available</button>
+        <button type="button" class="filter-chip" data-status="allocation full">Allocation Full</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="committee-table" id="committeeTable">
+        <thead>
+          <tr>
+            <th>Committee</th>
+            <th>Chairs</th>
+            <th>Topic</th>
+            <th>Capacity</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="committee-row" data-status="allocation full" data-search="crisis committee">
+            <td><span class="bento-name">Crisis</span><span class="bento-sub">X Cabinets - Specialised Committee</span></td>
+            <td><span class="bento-chairs">Crisis Director<span class="chair-sub">Assitant 1 and Assistant 2</span></span></td>
+            <td><span class="bento-topic">Insert topic here</span></td>
+            <td>
+              <div class="capacity-bar-wrap">
+                <div class="capacity-bar"><div class="capacity-bar-fill full" style="width:100%"></div></div>
+                <span class="capacity-label">25/25</span>
+              </div>
+            </td>
+            <td><span class="pill central">Allocation Full</span></td>
+          </tr>
+
+          <tr class="committee-row" data-status="allocation available" data-search="social humanitarian cultural committee">
+            <td><span class="bento-name">Social, Humanitarian &amp; Cultural Committee</span><span class="bento-sub">GA Committee</span></td>
+            <td><span class="bento-chairs">Director<span class="chair-sub">Deputy Director</span></span></td>
+            <td><span class="bento-topic">Insert topic here</span></td>
+            <td>
+              <div class="capacity-bar-wrap">
+                <div class="capacity-bar"><div class="capacity-bar-fill" style="width:73%"></div></div>
+                <span class="capacity-label">33/40</span>
+              </div>
+            </td>
+            <td><span class="pill dlr">Allocation Available</span></td>
+          </tr>
+
+          <tr class="committee-row" data-status="allocation available" data-search="human rights council">
+            <td><span class="bento-name">Human Rights Council</span><span class="bento-sub">GA Committee</span></td>
+            <td><span class="bento-chairs">Director<span class="chair-sub">Deputy Director</span></span></td>
+            <td><span class="bento-topic">Insert topic here</span></td>
+            <td>
+              <div class="capacity-bar-wrap">
+                <div class="capacity-bar"><div class="capacity-bar-fill" style="width:58%"></div></div>
+                <span class="capacity-label">21/40</span>
+              </div>
+            </td>
+            <td><span class="pill dlr">Allocation Available</span></td>
+          </tr>
+
+          <tr class="committee-row" data-status="allocation full" data-search="security council o. yilmaz f. nkemelu">
+            <td><span class="bento-name">Security Council</span><span class="bento-sub">GA Committee - Double Delegate</span></td>
+            <td><span class="bento-chairs">Director<span class="chair-sub">Deputy Director</span></span></td>
+            <td><span class="bento-topic">Insert topic here</span></td>
+            <td>
+              <div class="capacity-bar-wrap">
+                <div class="capacity-bar"><div class="capacity-bar-fill full" style="width:100%"></div></div>
+                <span class="capacity-label">30/30</span>
+              </div>
+            </td>
+            <td><span class="pill central">Allocation Full</span></td>
+          </tr>
+
+          <tr class="committee-row" data-status="allocation available" data-search="international criminal court icc h. maritz">
+            <td><span class="bento-name">International Criminal Court</span><span class="bento-sub">Specialised Committee</span></td>
+            <td><span class="bento-chairs">Director<span class="chair-sub">Deputy Director</span></span></td>
+            <td><span class="bento-topic">Insert topic here</span></td>
+            <td>
+              <div class="capacity-bar-wrap">
+                <div class="capacity-bar"><div class="capacity-bar-fill" style="width:40%"></div></div>
+                <span class="capacity-label">10/25</span>
+              </div>
+            </td>
+            <td><span class="pill dlr">Allocation Available</span></td>
+          </tr>
+
+          <tr class="committee-row" data-status="allocation available" data-search="world trade organisation wto p. laurent">
+            <td><span class="bento-name">World Trade Organisation</span><span class="bento-sub">GA Committee</span></td>
+            <td><span class="bento-chairs">Director<span class="chair-sub">Deputy Director</span></span></td>
+            <td><span class="bento-topic">Insert topic here</span></td>
+            <td>
+              <div class="capacity-bar-wrap">
+                <div class="capacity-bar"><div class="capacity-bar-fill" style="width:64%"></div></div>
+                <span class="capacity-label">23/40</span>
+              </div>
+            </td>
+            <td><span class="pill dlr">Allocation Available</span></td>
+          </tr>
+
+          <tr class="committee-row" data-status="allocation available" data-search="unodc drugs and crime d. abubakar">
+            <td><span class="bento-name">UNODC</span><span class="bento-sub">GA Committee</span></td>
+            <td><span class="bento-chairs">Director<span class="chair-sub">Deputy Director</span></span></td>
+            <td><span class="bento-topic">Insert topic here</span></td>
+            <td>
+              <div class="capacity-bar-wrap">
+                <div class="capacity-bar"><div class="capacity-bar-fill" style="width:50%"></div></div>
+                <span class="capacity-label">15/30</span>
+              </div>
+            </td>
+            <td><span class="pill dlr">Allocation Available</span></td>
+          </tr>
+
+          <tr class="committee-row" data-status="allocation full" data-search="house of commons westminster simulation e. thorncroft">
+            <td><span class="bento-name">House of Commons</span><span class="bento-sub">Specialised Committee</span></td>
+            <td><span class="bento-chairs">Director<span class="chair-sub">Deputy Director</span></span></td>
+            <td><span class="bento-topic">Insert topic here</span></td>
+            <td>
+              <div class="capacity-bar-wrap">
+                <div class="capacity-bar"><div class="capacity-bar-fill full" style="width:100%"></div></div>
+                <span class="capacity-label">17/35</span>
+              </div>
+            </td>
+            <td><span class="pill central">Allocation Full</span></td>
+          </tr>
+
+          <tr class="committee-row" data-status="allocation available" data-search="world health organisation who n. castellano">
+            <td><span class="bento-name">World Health Organisation</span><span class="bento-sub">GA Committee</span></td>
+            <td><span class="bento-chairs">Director<span class="chair-sub">Deputy Director</span></span></td>
+            <td><span class="bento-topic">Insert topic here</span></td>
+            <td>
+              <div class="capacity-bar-wrap">
+                <div class="capacity-bar"><div class="capacity-bar-fill" style="width:68%"></div></div>
+                <span class="capacity-label">25/40</span>
+              </div>
+            </td>
+            <td><span class="pill dlr">Allocation Available</span></td>
+          </tr>
+
+          <tr class="committee-row" data-status="allocation full" data-search="press corps media simulation w. sadowski">
+            <td><span class="bento-name">Press Corps</span><span class="bento-sub">Specialised Committee</span></td>
+            <td><span class="bento-chairs">Director<span class="chair-sub">Deputy Director</span></span></td>
+            <td><span class="bento-topic">Insert topic here</span></td>
+            <td>
+              <div class="capacity-bar-wrap">
+                <div class="capacity-bar"><div class="capacity-bar-fill full" style="width:100%"></div></div>
+                <span class="capacity-label">20/20</span>
+              </div>
+            </td>
+            <td><span class="pill central">Allocation Full</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="table-empty" id="tableEmpty">No committees match your search.</div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="committeeModal" aria-hidden="true">
+  <div class="modal-window" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-header">
+      <div>
+        <h2 id="modalTitle"></h2>
+        <p class="bento-sub" id="modalSub"></p>
+      </div>
+      <div class="modal-header-actions">
+        <span class="pill" id="modalPill"></span>
+        <button type="button" class="modal-close" id="modalClose" aria-label="Close">×</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="bento-chairs" id="modalChairs"></div>
+      <p class="bento-topic" id="modalTopic" style="margin-top:8px;"></p>
+      <div class="capacity-bar-wrap" style="margin-top:16px;">
+        <div class="capacity-bar"><div class="capacity-bar-fill" id="modalCapacityFill"></div></div>
+        <span class="capacity-label" id="modalCapacityLabel"></span>
+      </div>
+      <div class="modal-section-title" id="modalSeatsTitle"></div>
+      <div class="table-wrap">
+        <table class="seat-table">
+          <thead>
+            <tr>
+              <th>Country</th>
+              <th>Delegate</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="modalSeatsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const avatarBtn = document.getElementById('avatarBtn');
+  const avatarMenu = document.getElementById('avatarMenu');
+
+  function closeAvatarMenu() {
+    avatarMenu.classList.remove('open');
+    avatarBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  avatarBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const isOpen = avatarMenu.classList.toggle('open');
+    avatarBtn.setAttribute('aria-expanded', String(isOpen));
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!avatarMenu.contains(e.target) && e.target !== avatarBtn) closeAvatarMenu();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeAvatarMenu();
+  });
+
+  const searchInput = document.getElementById('committeeSearch');
+  const chips = document.querySelectorAll('.filter-chip');
+  const cards = document.querySelectorAll('#committeeTable .committee-row');
+  const emptyState = document.getElementById('tableEmpty');
+  let activeStatus = 'all';
+
+  function applyFilters() {
+    const q = searchInput.value.trim().toLowerCase();
+    let visibleCount = 0;
+    cards.forEach(function(card) {
+      const matchesStatus = activeStatus === 'all' || card.dataset.status === activeStatus;
+      const matchesSearch = !q || card.dataset.search.includes(q);
+      const visible = matchesStatus && matchesSearch;
+      card.classList.toggle('is-hidden', !visible);
+      if (visible) visibleCount++;
+    });
+    emptyState.classList.toggle('show', visibleCount === 0);
+  }
+
+  chips.forEach(function(chip) {
+    chip.addEventListener('click', function() {
+      chips.forEach(function(c) { c.classList.remove('on'); });
+      chip.classList.add('on');
+      activeStatus = chip.dataset.status;
+      applyFilters();
+    });
+  });
+
+  searchInput.addEventListener('input', applyFilters);
+
+  const COUNTRY_POOL = [
+    'United States', 'United Kingdom', 'France', 'Germany', 'Japan', 'Brazil', 'India', 'China',
+    'Russia', 'South Africa', 'Nigeria', 'Egypt', 'Kenya', 'Australia', 'Canada', 'Mexico',
+    'Argentina', 'Chile', 'Colombia', 'Indonesia', 'Pakistan', 'Bangladesh', 'Saudi Arabia', 'Iran',
+    'Turkiye', 'Poland', 'Ukraine', 'Sweden', 'Norway', 'Finland', 'Netherlands', 'United Arab Emirates', 
+    'Belgium', 'Switzerland', 'Spain', 'Portugal', 'Italy', 'Greece', 'South Korea', 'DPRK',
+    'Vietnam', 'Thailand', 'Philippines', 'Malaysia', 'Singapore', 'New Zealand', 'Ireland', 'Denmark',
+    'Austria', 'Czech Republic', 'Hungary', 'Romania', 'Morocco', 'Algeria', 'Ethiopia', 'Ghana',
+    'Senegal', 'Jordan', 'Qatar', 'United Arab Emirates', 'Kuwait', 'Iraq', 'Venezuela', 'Peru',
+    'Cuba', 'Jamaica'
+  ];
+  const NAME_INITIALS = ['Delegate'];
+  const NAME_SURNAMES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21'
+  ];
+
+  function delegateName(n) {
+    const initial = NAME_INITIALS[n % NAME_INITIALS.length];
+    const surname = NAME_SURNAMES[Math.floor(n / NAME_INITIALS.length) % NAME_SURNAMES.length];
+    return initial + '. ' + surname;
+  }
+
+  function buildRoster(committeeIndex, filled, total) {
+    const seats = [];
+    for (let i = 0; i < total; i++) {
+      const country = COUNTRY_POOL[(committeeIndex * 13 + i) % COUNTRY_POOL.length];
+      const delegate = i < filled ? delegateName(committeeIndex * 100 + i) : null;
+      seats.push({ country: country, delegate: delegate });
+    }
+    return seats;
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function(c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  const modalOverlay = document.getElementById('committeeModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalSub = document.getElementById('modalSub');
+  const modalPill = document.getElementById('modalPill');
+  const modalClose = document.getElementById('modalClose');
+  const modalChairs = document.getElementById('modalChairs');
+  const modalTopic = document.getElementById('modalTopic');
+  const modalCapacityFill = document.getElementById('modalCapacityFill');
+  const modalCapacityLabel = document.getElementById('modalCapacityLabel');
+  const modalSeatsTitle = document.getElementById('modalSeatsTitle');
+  const modalSeatsBody = document.getElementById('modalSeatsBody');
+
+  function seatRowHtml(seat, available) {
+    const delegateText = available
+      ? '<span class="seat-delegate-empty">—</span>'
+      : escapeHtml(seat.delegate);
+    const pillClass = available ? 'dlr' : 'gold';
+    const statusText = available ? 'Available' : 'Assigned';
+    return '<tr>' +
+      '<td>' + escapeHtml(seat.country) + '</td>' +
+      '<td>' + delegateText + '</td>' +
+      '<td><span class="pill ' + pillClass + '">' + statusText + '</span></td>' +
+      '</tr>';
+  }
+
+  function openCommitteeModal(card, index) {
+    const nameEl = card.querySelector('.bento-name');
+    const subEl = card.querySelector('.bento-sub');
+    const pillEl = card.querySelector('.pill');
+    const topicEl = card.querySelector('.bento-topic');
+    const chairsEl = card.querySelector('.bento-chairs');
+    const capLabelEl = card.querySelector('.capacity-label');
+    const fillEl = card.querySelector('.capacity-bar-fill');
+
+    const capText = capLabelEl ? capLabelEl.textContent.trim() : '0/0';
+    const match = capText.match(/(\d+)\s*\/\s*(\d+)/);
+    const filled = match ? parseInt(match[1], 10) : 0;
+    const total = match ? parseInt(match[2], 10) : 0;
+
+    modalTitle.textContent = nameEl ? nameEl.textContent.trim() : '';
+    modalSub.textContent = subEl ? subEl.textContent.trim() : '';
+    modalPill.className = 'pill' + (pillEl ? ' ' + Array.from(pillEl.classList).filter(function(c) { return c !== 'pill'; }).join(' ') : '');
+    modalPill.textContent = pillEl ? pillEl.textContent.trim() : '';
+    modalChairs.innerHTML = chairsEl ? chairsEl.innerHTML : '';
+    modalTopic.textContent = topicEl ? topicEl.textContent.trim() : '';
+    modalCapacityLabel.textContent = capText;
+    modalCapacityFill.style.width = total > 0 ? Math.round((filled / total) * 100) + '%' : '0%';
+    modalCapacityFill.classList.toggle('full', !!(fillEl && fillEl.classList.contains('full')));
+
+    const roster = buildRoster(index, filled, total);
+    const assignedCount = roster.filter(function(s) { return s.delegate; }).length;
+
+    modalSeatsTitle.textContent = 'Delegate Roster (' + assignedCount + '/' + total + ' assigned)';
+    modalSeatsBody.innerHTML = roster.length
+      ? roster.map(function(s) { return seatRowHtml(s, !s.delegate); }).join('')
+      : '<tr><td colspan="3" class="seat-empty">No seats configured for this committee.</td></tr>';
+
+    modalOverlay.classList.add('open');
+    modalOverlay.setAttribute('aria-hidden', 'false');
+    modalClose.focus();
+  }
+
+  function closeCommitteeModal() {
+    modalOverlay.classList.remove('open');
+    modalOverlay.setAttribute('aria-hidden', 'true');
+  }
+
+  cards.forEach(function(card, index) {
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-haspopup', 'dialog');
+    card.addEventListener('click', function() { openCommitteeModal(card, index); });
+    card.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openCommitteeModal(card, index);
+      }
+    });
+  });
+
+  modalClose.addEventListener('click', closeCommitteeModal);
+  modalOverlay.addEventListener('click', function(e) {
+    if (e.target === modalOverlay) closeCommitteeModal();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeCommitteeModal();
+  });
+</script>
+
+</body>
+</html>
