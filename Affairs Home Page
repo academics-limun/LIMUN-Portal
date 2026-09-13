@@ -30,7 +30,7 @@
     -webkit-font-smoothing: antialiased;
     padding-top: 118px;
 }
-
+/* --- navigation bars, menus and links to other portals--- */
 button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
   .topbar {
     position: fixed;
@@ -46,7 +46,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     border-bottom: 1px solid var(--hair);
     z-index: 6;
   }
-  .brand { font-weight: 700; }
+  .brand { font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .brand-logo { height: 28px; width: auto; display: block; }
   .search {
     justify-self: center;
     width: 100%;
@@ -122,19 +123,18 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     color: var(--gold-1);
     font-size: .85rem;
   }
-  .tab:hover { background: rgba(255,255,255,.05); }
+  .tab:hover { background: var(--indigo-deep)(255,255,255,.05); }
   .tab.on {
     background: var(--gold-2);
     color: #1c1330;
   }
   .layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 220px;
+    display: flex;
+    flex-direction: column;
     gap: 20px;
-    max-width: 1180px;
+    max-width: 900px;
     margin: 0 auto;
     padding: 28px;
-    align-items: start;
   }
 
   .menu-fixed {
@@ -153,14 +153,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   }
   .menu-fixed .side-title { margin: 0; flex-shrink: 0; white-space: nowrap; }
 
-  .sidebar {
-    background: var(--elizabeth);
-    border: 1px solid var(--hair);
-    border-radius: 20px;
-    padding: 18px;
-    position: sticky;
-    top: 28px;
-  }
   .side-title {
     font-size: .75rem;
     text-transform: uppercase;
@@ -195,21 +187,21 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
   .bento {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 14px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
   }
+  .stat { padding: 0 6px; }
+  .stat:not(:last-child) { border-right: 1px solid var(--hair); }
   .card {
     background: var(--elizabeth);
     border: 3px solid var(--hair);
     border-radius: 20px;
     padding: 20px;
   }
-  .span2 { grid-column: span 2; }
 
   .k { font-size: .75rem; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
   .v { font-family: Georgia, serif; font-size: 2rem; }
 
-  .todo { margin-top: 14px; }
   .todo-header {
     display: flex;
     align-items: center;
@@ -279,6 +271,33 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   }
   .todo-remove:hover { background: rgba(255,255,255,.08); color: #ff6b8f; }
 
+  .todo-columns {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 2px 4px;
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+  }
+  .todo-columns .col-task { flex: 1; }
+  .todo-columns .col-assignee { width: 112px; flex-shrink: 0; }
+  .todo-columns .col-spacer { width: 24px; flex-shrink: 0; }
+
+  .todo-assignee {
+    width: 112px;
+    flex-shrink: 0;
+    font-family: inherit;
+    font-size: .8rem;
+    color: var(--gold-1);
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--hair);
+    border-radius: 100px;
+    padding: 6px 10px;
+  }
+  .todo-assignee:focus { outline: 1px dashed var(--hair); }
+
   .todo-add {
     display: flex;
     gap: 8px;
@@ -306,10 +325,14 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     border-radius: 100px;
   }
   .todo-add-btn:hover { background: var(--gold-1); }
-
-  @media (max-width: 900px) {
-    .layout { grid-template-columns: 1fr; }
-    .sidebar { display: none; }
+/* --- layout of main page --- */
+  @media (max-width: 700px) {
+    .bento { grid-template-columns: 1fr; gap: 14px; }
+    .stat:not(:last-child) {
+      border-right: none;
+      border-bottom: 1px solid var(--hair);
+      padding-bottom: 14px;
+    }
   }
 
 .pill {
@@ -324,7 +347,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .pill.dlr  { background: rgba(7,131,112,.18);  color: #37d3b6; }
   .pill.central { background: rgba(205,27,70,.16); color: #ff6b8f; }
 
-  /* --- gradient background lines based off bb --- */
+  /* --- gradient background lines based off brandbook --- */
   .tube-lines {
     position: fixed;
     inset: 0;
@@ -407,8 +430,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   <path class="tube-line" style="animation-delay:.7s" stroke="url(#gDlr)"    filter="url(#tubeGlow)" d="M -60,860 L 280,860 Q 340,860 384.4,819.6 L 515.6,700.4 Q 560,660 620,660 L 880,660 Q 940,660 984.4,700.4 L 1115.6,819.6 Q 1160,860 1220,860 L 1560,860"/>
 </svg>
 
+<!-- top bar branding and contents -->
+
 <div class="topbar">
-  <div class="brand">Delegate Allocation Portal</div>
+  <div class="brand">
+    <img class="brand-logo" src="assets/Logo 2027 - Gold.png" alt="LIMUN logo">
+    Delegate Allocation Portal
+  </div>
   <div class="avatar-wrap">
     <button type="button" class="avatar" id="avatarBtn" aria-haspopup="true" aria-expanded="false">DA</button>
     <div class="avatar-menu" id="avatarMenu">
@@ -419,59 +447,61 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   </div>
 </div>
 
- 
+ <!-- tab bar branding and contents -->
 <aside class="menu-fixed">
   <div class="side-title">Menu</div>
   <nav class="side-nav">
     <a class="side-link on" href="#">Dashboard</a>
-    <a class="side-link" href="#">Delegate Overview</a>
-    <a class="side-link" href="#">Committee Management</a>
+    <a class="side-link" href="Delegate Management.html">Delegate Management</a>
+    <a class="side-link" href="Committee Management.html">Committee Management</a>
     <a class="side-link" href="#">Delegation Management</a>
     <a class="side-link" href="#">User Interface (DEMO)</a>
   </nav>
 </aside>
-
-<div class="layout">
-  <main>
-    <div class="bento">
-      <div class="card span2">
-        <div class="k">Total registered</div>
-        <div class="v">1,200</div>
-        <span class="pill gold">↑ 4.2%</span>
-      </div>
-      <div class="card span2">
-        <div class="k">Allocations Confirmed</div>
-        <div class="v">459</div>
-        <span class="pill dlr">on track</span>
-      </div>
-      <div class="card span2">
-        <div class="k">Preferences Received</div>
-        <div class="v">373</div>
-        <span class="pill central">to be finished</span>
-      </div>
+<!-- main content -- will be linked to the databases when i make them -->
+<main class="layout">
+  <div class="card bento">
+    <div class="stat">
+      <div class="k">Total registered</div>
+      <div class="v">1,200</div>
     </div>
-
-    <div class="card todo">
-      <div class="todo-header">
-        <div class="k">To-Do</div>
-        <button type="button" class="todo-reset" id="todoReset">Reset</button>
-      </div>
-      <ul class="todo-list" id="todoList"></ul>
-      <form class="todo-add" id="todoAddForm">
-        <input type="text" class="todo-input" placeholder="Add a task…" maxlength="120">
-        <button type="submit" class="todo-add-btn">Add</button>
-      </form>
+    <div class="stat">
+      <div class="k">Allocations Confirmed</div>
+      <div class="v">459</div>
+      <span class="pill dlr">on track</span>
     </div>
-  </main>
+    <div class="stat">
+      <div class="k">Preferences Received</div>
+      <div class="v">373</div>
+      <span class="pill central">to be finished</span>
+    </div>
+  </div>
 
-  <aside class="sidebar sidebar-right">
+  <div class="card todo">
+    <div class="todo-header">
+      <div class="k">To-Do</div>
+      <button type="button" class="todo-reset" id="todoReset">Reset</button>
+    </div>
+    <div class="todo-columns">
+      <span class="col-task">Task</span>
+      <span class="col-assignee">Completed by</span>
+      <span class="col-spacer"></span>
+    </div>
+    <ul class="todo-list" id="todoList"></ul>
+    <form class="todo-add" id="todoAddForm">
+      <input type="text" class="todo-input" placeholder="Add a task…" maxlength="120">
+      <button type="submit" class="todo-add-btn">Add</button>
+    </form>
+  </div>
+
+  <div class="card">
     <div class="side-title">Activity</div>
     <div class="activity-item"><strong>C.Hepke</strong>submitted preferences · 2m ago</div>
     <div class="activity-item"><strong>University of Bath</strong>confirmed 12 delegates · 18m ago</div>
     <div class="activity-item"><strong>O.Mackie</strong>allocation updated · 1h ago</div>
     <div class="activity-item"><strong>LSE</strong>fee payment received · 3h ago</div>
-  </aside>
-</div>
+  </div>
+</main>
 
 <script>
   const tabs = document.querySelectorAll('.tab');
@@ -519,9 +549,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
   const TODO_KEY = 'daia-todos';
   const defaultTodos = [
-    { text: 'Follow up with ExMUN for their delegation allocatioN', checked: false },
-    { text: 'Ask ICC to confirm delegate applications', checked: true },
-    { text: 'Replace Head Delegate for SIMUN', checked: false },
+    { text: 'Follow up with ExMUN for their delegation allocation', checked: false, assignee: '' },
+    { text: 'Ask ICC to confirm delegate applications', checked: true, assignee: 'Talia' },
+    { text: 'Replace Head Delegate for SIMUN', checked: false, assignee: 'Zubaida' },
   ];
 
 
@@ -529,7 +559,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   const todoAddForm = document.getElementById('todoAddForm');
   const todoInput = todoAddForm.querySelector('.todo-input');
 
-  function makeTodoItem(text, checked) {
+  function makeTodoItem(text, checked, assignee) {
     const li = document.createElement('li');
 
     const label = document.createElement('label');
@@ -545,6 +575,20 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     label.appendChild(checkbox);
     label.appendChild(span);
 
+    const assigneeSelect = document.createElement('select');
+    assigneeSelect.className = 'todo-assignee';
+    [
+      { value: '', label: 'Unassigned' },
+      { value: 'Talia', label: 'Talia' },
+      { value: 'Zubaida', label: 'Zubaida' },
+    ].forEach(function(opt) {
+      const option = document.createElement('option');
+      option.value = opt.value;
+      option.textContent = opt.label;
+      assigneeSelect.appendChild(option);
+    });
+    assigneeSelect.value = assignee || '';
+
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
     removeBtn.className = 'todo-remove';
@@ -552,6 +596,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     removeBtn.textContent = '×';
 
     li.appendChild(label);
+    li.appendChild(assigneeSelect);
     li.appendChild(removeBtn);
     return li;
   }
@@ -561,6 +606,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
       return {
         text: li.querySelector('.todo-text').textContent.trim(),
         checked: li.querySelector('input[type="checkbox"]').checked,
+        assignee: li.querySelector('.todo-assignee').value,
       };
     });
     localStorage.setItem(TODO_KEY, JSON.stringify(items));
@@ -574,7 +620,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     }
     todoList.innerHTML = '';
     items.forEach(function(item) {
-      todoList.appendChild(makeTodoItem(item.text, item.checked));
+      todoList.appendChild(makeTodoItem(item.text, item.checked, item.assignee));
     });
   }
 
@@ -586,7 +632,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   });
 
   todoList.addEventListener('change', function(e) {
-    if (e.target.type === 'checkbox') saveTodos();
+    if (e.target.type === 'checkbox' || e.target.classList.contains('todo-assignee')) saveTodos();
   });
 
   todoList.addEventListener('focusout', function(e) {
