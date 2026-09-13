@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Delegation Management — Delegate Allocations Portal</title>
+</head>
+<style>
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --indigo: #16112E;
+    --indigo-deep: #0E0A20;
+    --elizabeth: #2B1C50;
+    --gold-1: #FFC06B;
+    --gold-2: #BE7800;
+    --central: #CD1B46;
+    --circle: #FF9F00;
+    --dlr: #078370;
+    --hair: rgba(237,234,246,.08);
+    --muted: rgba(237,234,246,.55);
+    --serif: 'Butler', 'Georgia','Times New Roman', serif;
+    --sans: 'Futura PT', 'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif;
+  }
+
+  body {
+    background: var(--indigo-deep);
+    color: var(--gold-1);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    padding-top: 118px;
+  }
+
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+  .topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 28px;
+    background: var(--indigo);
+    border-bottom: 1px solid var(--hair);
+    z-index: 6;
+  }
+  .brand { font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .brand-logo { height: 28px; width: auto; display: block; }
+  .avatar-wrap { position: absolute; top: 50%; right: 28px; transform: translateY(-50%); }
+  .avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--gold-1);
+    color: #1c1330;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .75rem; font-weight: 700;
+  }
+  .avatar-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 190px;
+    background: var(--elizabeth);
+    border: 1px solid var(--hair);
+    border-radius: 14px;
+    padding: 8px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.35);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity .15s ease, transform .15s ease;
+    z-index: 20;
+  }
+  .avatar-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
+  .avatar-menu-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 6px 10px 8px; }
+  .avatar-menu-item { display: block; padding: 9px 10px; border-radius: 9px; font-size: .85rem; color: var(--gold-1); text-decoration: none; }
+  .avatar-menu-item:hover { background: rgba(255,255,255,.06); }
+
+  .menu-fixed {
+    position: fixed;
+    top: 63px;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 28px;
+    background: var(--elizabeth);
+    border-bottom: 1px solid var(--hair);
+    overflow-x: auto;
+    z-index: 5;
+  }
+  .menu-fixed .side-title { margin: 0; flex-shrink: 0; white-space: nowrap; }
+  .side-title { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .side-nav { display: flex; flex-direction: row; flex: 1; gap: 4px; min-width: 0; }
+  .side-link {
+    flex: 1 1 0;
+    min-width: 120px;
+    display: block;
+    padding: 9px 12px;
+    border-radius: 10px;
+    color: var(--gold-1);
+    font-size: .85rem;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .side-link:hover { background: rgba(255,255,255,.05); }
+  .side-link.on { background: var(--gold-2); color: #1c1330; font-weight: 600; }
+
+  .layout {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 28px;
+  }
+
+  .card {
+    background: var(--elizabeth);
+    border: 3px solid var(--hair);
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .pill {
+    display: inline-block;
+    font-size: .7rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 100px;
+  }
+  .pill.gold { background: rgba(255,192,107,.15); color: var(--gold-1); }
+  .pill.dlr  { background: rgba(7,131,112,.18);  color: #37d3b6; }
+  .pill.central { background: rgba(205,27,70,.16); color: #ff6b8f; }
+
+  .page-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .page-head h1 { font-family: var(--serif); font-weight: 400; font-size: 1.4rem; color: var(--gold-1); }
+  .page-head p { font-size: .8rem; color: var(--muted); margin-top: 4px; }
+  .page-head-title { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+  .btn-allocate {
+    background: var(--gold-2);
+    color: #1c1330;
+    font-size: .8rem;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 10px;
+  }
+  .btn-allocate:hover { background: var(--gold-1); }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(9,7,20,.6);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 50;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .15s ease;
+  }
+  .modal-overlay.open { opacity: 1; visibility: visible; }
+  .modal-panel {
+    background: var(--elizabeth);
+    border: 1px solid var(--hair);
+    border-radius: 18px;
+    width: 100%;
+    max-width: 640px;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 50px rgba(0,0,0,.45);
+    transform: translateY(8px);
+    transition: transform .15s ease;
+  }
+  .modal-overlay.open .modal-panel { transform: translateY(0); }
+  .modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--hair);
+  }
+  .modal-head h2 { font-family: var(--serif); font-weight: 400; font-size: 1.15rem; color: var(--gold-1); }
+  .modal-head p { font-size: .75rem; color: var(--muted); margin-top: 3px; }
+  .modal-close {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    font-size: 1rem;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .modal-close:hover { background: rgba(255,255,255,.08); color: var(--gold-1); }
+  .modal-body { overflow-y: auto; padding: 8px; }
+  .modal-empty { padding: 30px 20px; text-align: center; font-size: .85rem; color: var(--muted); display: none; }
+  .modal-empty.show { display: block; }
+
+  .allocate-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+  }
+  .allocate-row:hover { background: rgba(255,255,255,.04); }
+  .allocate-row .delegate-name { display: block; }
+  .allocate-row .delegate-sub { display: block; }
+  .btn-allocate-row {
+    background: rgba(255,192,107,.15);
+    color: var(--gold-1);
+    font-size: .75rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .btn-allocate-row:hover { background: var(--gold-2); color: #1c1330; }
+
+  .modal-panel.detail-panel { max-width: 720px; }
+  .detail-status-row { display: flex; align-items: center; gap: 10px; margin: 4px 0 18px; padding: 0 20px; }
+  .detail-body { padding: 0 20px 20px; overflow-y: auto; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 18px; }
+  .detail-field { min-width: 0; }
+  .detail-field.span-2 { grid-column: span 2; }
+  .detail-field label { display: block; font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 4px; }
+  .detail-field .value { font-size: .88rem; color: var(--gold-1); }
+  .detail-field .value.muted { color: var(--muted); }
+  .detail-field ol { padding-left: 18px; }
+  .detail-field ol li { font-size: .85rem; margin-bottom: 2px; }
+
+  .committee-dash { color: var(--muted); }
+  .delegate-table tbody tr { cursor: pointer; }
+  .delegate-table tbody tr:hover { background: rgba(255,255,255,.04); }
+
+  .table-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+  .table-search {
+    flex: 1;
+    min-width: 180px;
+    max-width: 280px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--hair);
+    border-radius: 100px;
+    padding: 8px 14px;
+    color: var(--gold-1);
+    font-family: inherit;
+    font-size: .85rem;
+  }
+  .table-search::placeholder { color: var(--muted); }
+  .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filter-chip {
+    padding: 7px 14px;
+    border-radius: 100px;
+    font-size: .8rem;
+    color: var(--gold-1);
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--hair);
+  }
+  .filter-chip:hover { background: rgba(255,255,255,.08); }
+  .filter-chip.on { background: var(--gold-2); color: #1c1330; font-weight: 600; border-color: transparent; }
+
+  .table-wrap { overflow-x: auto; margin-top: 14px; }
+  .delegate-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  .delegate-table th {
+    text-align: left;
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--hair);
+    white-space: nowrap;
+  }
+  .delegate-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--hair);
+    color: var(--gold-1);
+    vertical-align: top;
+  }
+  .delegate-table tr:last-child td { border-bottom: none; }
+  .delegate-table tr.is-hidden { display: none; }
+  .delegate-name { font-weight: 600; }
+  .delegate-sub { display: block; font-size: .75rem; color: var(--muted); margin-top: 2px; }
+  .table-empty { display: none; padding: 24px 0; text-align: center; color: var(--muted); font-size: .85rem; }
+  .table-empty.show { display: block; }
+
+  @media (max-width: 700px) {
+    .table-controls { flex-direction: column; align-items: stretch; }
+    .table-search { max-width: none; }
+  }
+
+  .tube-lines {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .tube-lines .stop-gold-a    { stop-color: var(--elizabeth); }
+  .tube-lines .stop-gold-b    { stop-color: var(--indigo); }
+  .tube-lines .stop-central-a { stop-color: var(--central); }
+  .tube-lines .stop-central-b { stop-color: #ff6b8f; }
+  .tube-lines .stop-circle-a  { stop-color: var(--circle); }
+  .tube-lines .stop-circle-b  { stop-color: #ffcf80; }
+  .tube-lines .stop-dlr-a     { stop-color: var(--dlr); }
+  .tube-lines .stop-dlr-b     { stop-color: #37d3b6; }
+
+  .tube-line {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: .6;
+    stroke-dasharray: 2600;
+    stroke-dashoffset: 2600;
+    animation: tube-draw 2.4s cubic-bezier(.25,.7,.3,1) forwards;
+  }
+  @keyframes tube-draw {
+    to { stroke-dashoffset: 0; }
+  }
+
+</style>
+</head>
+<body>
+
+<svg class="tube-lines" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <filter id="tubeGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <linearGradient id="gGold" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="320" y2="0" spreadMethod="repeat">
+      <stop class="stop-gold-a" offset="0%"/>
+      <stop class="stop-gold-b" offset="50%"/>
+      <stop class="stop-gold-a" offset="100%"/>
+      <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="320 0" dur="5s" repeatCount="indefinite"/>
+    </linearGradient>
+
+    <linearGradient id="gCentral" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="320" y2="0" spreadMethod="repeat">
+      <stop class="stop-central-a" offset="0%"/>
+      <stop class="stop-central-b" offset="50%"/>
+      <stop class="stop-central-a" offset="100%"/>
+      <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="320 0" dur="6s" repeatCount="indefinite"/>
+    </linearGradient>
+
+    <linearGradient id="gCircle" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="320" y2="0" spreadMethod="repeat">
+      <stop class="stop-circle-a" offset="0%"/>
+      <stop class="stop-circle-b" offset="50%"/>
+      <stop class="stop-circle-a" offset="100%"/>
+      <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="320 0" dur="7s" repeatCount="indefinite"/>
+    </linearGradient>
+
+    <linearGradient id="gDlr" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="320" y2="0" spreadMethod="repeat">
+      <stop class="stop-dlr-a" offset="0%"/>
+      <stop class="stop-dlr-b" offset="50%"/>
+      <stop class="stop-dlr-a" offset="100%"/>
+      <animateTransform attributeName="gradientTransform" type="translate" from="0 0" to="320 0" dur="5.5s" repeatCount="indefinite"/>
+    </linearGradient>
+  </defs>
+
+  <path class="tube-line" style="animation-delay:.1s" stroke="url(#gGold)"    filter="url(#tubeGlow)" d="M -60,140 L 240,140 Q 300,140 342.4,182.4 L 457.6,297.6 Q 500,340 560,340 L 840,340 Q 900,340 942.4,297.6 L 1057.6,182.4 Q 1100,140 1160,140 L 1560,140"/>
+  <path class="tube-line" style="animation-delay:.5s" stroke="url(#gCircle)" filter="url(#tubeGlow)" d="M -60,420 L 160,420 Q 220,420 262.4,377.6 L 377.6,262.4 Q 420,220 480,220 L 960,220 Q 1020,220 1062.4,262.4 L 1177.6,377.6 Q 1220,420 1280,420 L 1560,420"/>
+  <path class="tube-line" style="animation-delay:.3s" stroke="url(#gCentral)" filter="url(#tubeGlow)" d="M -60,720 L 200,720 Q 260,720 302.4,677.6 L 417.6,562.4 Q 460,520 520,520 L 800,520 Q 860,520 902.4,562.4 L 1017.6,677.6 Q 1060,720 1120,720 L 1560,720"/>
+  <path class="tube-line" style="animation-delay:.7s" stroke="url(#gDlr)"    filter="url(#tubeGlow)" d="M -60,860 L 280,860 Q 340,860 384.4,819.6 L 515.6,700.4 Q 560,660 620,660 L 880,660 Q 940,660 984.4,700.4 L 1115.6,819.6 Q 1160,860 1220,860 L 1560,860"/>
+</svg>
+
+<div class="topbar">
+  <div class="brand">
+    <img class="brand-logo" src="assets/Logo 2027 - Gold.png" alt="LIMUN logo">
+    Delegate Allocation Portal
+  </div>
+  <div class="avatar-wrap">
+    <button type="button" class="avatar" id="avatarBtn" aria-haspopup="true" aria-expanded="false">DA</button>
+    <div class="avatar-menu" id="avatarMenu">
+      <div class="avatar-menu-label">Switch portal</div>
+      <a class="avatar-menu-item" href="../Academics Portal.html">Academics Portal</a>
+      <a class="avatar-menu-item" href="#">Finance Portal</a>
+    </div>
+  </div>
+</div>
+
+<aside class="menu-fixed">
+  <div class="side-title">Menu</div>
+  <nav class="side-nav">
+    <a class="side-link" href="Affairs Home Page.html">Dashboard</a>
+    <a class="side-link" href="Delegate Management.html">Delegate Management</a>
+    <a class="side-link" href="Committee Management.html">Committee Management</a>
+    <a class="side-link on" href="#">Delegation Management</a>
+    <a class="side-link" href="#">User Interface (DEMO)</a>
+  </nav>
+</aside>
+
+<main class="layout">
+  <div class="card">
+    <div class="page-head">
+      <div class="page-head-title">
+        <h1>Delegation Management Overview</h1>
+        <button type="button" class="btn-allocate" id="allocateBtn">Allocate</button>
+      </div>
+    </div>
+
+    <div class="table-controls">
+      <input type="text" class="table-search" id="schoolSearch" placeholder="Search by school">
+      <div class="filter-chips">
+        <button type="button" class="filter-chip on" data-status="all">All</button>
+        <button type="button" class="filter-chip" data-status="completed">Completed</button>
+        <button type="button" class="filter-chip" data-status="allocated">Allocated</button>
+        <button type="button" class="filter-chip" data-status="paid">Paid</button>
+        <button type="button" class="filter-chip" data-status="submitted">Submitted</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="delegate-table" id="schoolTable">
+        <thead>
+          <tr>
+            <th>School</th>
+            <th>Delegates</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="schoolTableBody"></tbody>
+      </table>
+      <div class="table-empty" id="tableEmpty">No schools match your search.</div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="allocateOverlay">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="allocateModalTitle">
+    <div class="modal-head">
+      <div>
+        <h2 id="allocateModalTitle">Unallocated Delegations</h2>
+        <p>Schools with delegates who have paid but do not yet have a committee.</p>
+      </div>
+      <button type="button" class="modal-close" id="allocateModalClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body" id="allocateModalBody"></div>
+    <div class="modal-empty" id="allocateModalEmpty">No delegations are waiting to be allocated.</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="detailOverlay">
+  <div class="modal-panel detail-panel" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
+    <div class="modal-head">
+      <div>
+        <h2 id="detailModalTitle"></h2>
+        <p id="detailModalSub"></p>
+      </div>
+      <button type="button" class="modal-close" id="detailModalClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="detail-status-row" id="detailStatusRow"></div>
+    <div class="detail-body">
+      <div class="detail-grid" id="detailGrid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="schoolOverlay">
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="schoolModalTitle">
+    <div class="modal-head">
+      <div>
+        <h2 id="schoolModalTitle"></h2>
+        <p id="schoolModalSub"></p>
+      </div>
+      <button type="button" class="modal-close" id="schoolModalClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body" id="schoolModalBody"></div>
+  </div>
+</div>
+
+<script>
+  const avatarBtn = document.getElementById('avatarBtn');
+  const avatarMenu = document.getElementById('avatarMenu');
+
+  function closeAvatarMenu() {
+    avatarMenu.classList.remove('open');
+    avatarBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  avatarBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const isOpen = avatarMenu.classList.toggle('open');
+    avatarBtn.setAttribute('aria-expanded', String(isOpen));
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!avatarMenu.contains(e.target) && e.target !== avatarBtn) closeAvatarMenu();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeAvatarMenu();
+  });
+
+  const STATUS_META = {
+    completed: { label: 'Completed', pill: 'dlr' },
+    submitted: { label: 'Submitted', pill: 'central' },
+    allocated: { label: 'Allocated', pill: 'gold' },
+    paid:      { label: 'Paid',      pill: 'circle' }
+  };
+
+  const DELEGATES = [
+    { id: 1, name: 'K. Wilkinson', uni: "St George's, University of London", status: 'completed',
+      committee: 'Crisis', preferences: ['Crisis', 'Security Council', 'UNODC'],
+      experience: 'Advanced', submitted: 'xx/xx/xxxx', paid: 'xx/xx/xxxx'},
+    { id: 2, name: 'C. Hepke', uni: 'LSE', status: 'submitted',
+      committee: null, preferences: ['Social, Humanitarian & Cultural Committee', 'Press Corps', 'House of Commons'],
+      experience: 'Beginner — 1st conference', submitted: '28 Jul 2026', paid: null },
+    { id: 3, name: 'M. Paterson', uni: 'Royal Holloway, University of London', status: 'allocated',
+      committee: 'Human Rights Council', preferences: ['Human Rights Council', 'International Criminal Court', 'UNODC'],
+      experience: 'Intermediate — 2nd conference', submitted: '15 Jun 2026', paid: '22 Jun 2026' },
+    { id: 4, name: 'O. Mackie', uni: 'Kings College London', status: 'paid',
+      committee: null, preferences: ['Security Council', 'Human Rights Council', 'Crisis'],
+      experience: 'Intermediate — 2nd conference', submitted: '1 Jul 2026', paid: '9 Jul 2026' },
+    { id: 5, name: 'L. Connolly-Woods', uni: 'ExMUN', status: 'submitted',
+      committee: null, preferences: ['International Criminal Court', 'Crisis', 'Human Rights Council'],
+      experience: 'Beginner — 1st conference', submitted: '2 Aug 2026', paid: null },
+    { id: 6, name: 'T. Asar', uni: 'Hult International Business School', status: 'completed',
+      committee: 'World Trade Organisation', preferences: ['World Trade Organisation', 'UNODC', 'Press Corps'],
+      experience: 'Advanced — 4th conference', submitted: '10 May 2026', paid: '18 May 2026' },
+    { id: 7, name: 'N. Salman', uni: 'Kings College London', status: 'allocated',
+      committee: 'UNODC', preferences: ['UNODC', 'World Health Organisation', 'Crisis'],
+      experience: 'Intermediate — 2nd conference', submitted: '20 Jun 2026', paid: '25 Jun 2026' },
+    { id: 8, name: 'Z. Hassan', uni: 'University College London', status: 'completed',
+      committee: 'House of Commons', preferences: ['House of Commons', 'Crisis', 'International Criminal Court'],
+      experience: 'Advanced — 3rd conference', submitted: '5 May 2026', paid: '12 May 2026' },
+    { id: 9, name: 'J. Wong', uni: 'University of Bath', status: 'paid',
+      committee: null, preferences: ['World Health Organisation', 'Human Rights Council', 'UNODC'],
+      experience: 'Beginner — 1st conference', submitted: '30 Jun 2026', paid: '8 Jul 2026' },
+    { id: 10, name: 'G. Eriaye', uni: 'University of Edinburgh', status: 'submitted',
+      committee: null, preferences: ['Press Corps', 'Social, Humanitarian & Cultural Committee', 'House of Commons'],
+      experience: 'Beginner — 1st conference', submitted: '4 Aug 2026', paid: null }
+  ];
+
+  function showsCommittee(d) {
+    return (d.status === 'completed' || d.status === 'allocated') && d.committee;
+  }
+
+  const SCHOOLS = (function() {
+    const map = new Map();
+    DELEGATES.forEach(function(d) {
+      if (!map.has(d.uni)) map.set(d.uni, []);
+      map.get(d.uni).push(d);
+    });
+    return Array.from(map.entries()).map(function(entry) {
+      return { uni: entry[0], delegates: entry[1] };
+    });
+  })();
+
+  const schoolTableBody = document.getElementById('schoolTableBody');
+
+  function renderTable() {
+    schoolTableBody.innerHTML = SCHOOLS.map(function(school) {
+      const counts = {};
+      school.delegates.forEach(function(d) { counts[d.status] = (counts[d.status] || 0) + 1; });
+      const statusPills = Object.keys(counts).map(function(status) {
+        const meta = STATUS_META[status];
+        return '<span class="pill ' + meta.pill + '">' + counts[status] + ' ' + meta.label + '</span>';
+      }).join(' ');
+      const delegateCount = school.delegates.length + (school.delegates.length === 1 ? ' delegate' : ' delegates');
+      const search = school.uni.toLowerCase();
+      return '<tr data-school="' + school.uni.replace(/"/g, '&quot;') + '" data-status="' + Object.keys(counts).join(' ') + '" data-search="' + search.replace(/"/g, '&quot;') + '">' +
+        '<td><span class="delegate-name">' + school.uni + '</span></td>' +
+        '<td>' + delegateCount + '</td>' +
+        '<td>' + statusPills + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  renderTable();
+
+  const searchInput = document.getElementById('schoolSearch');
+  const chips = document.querySelectorAll('.filter-chip');
+  const emptyState = document.getElementById('tableEmpty');
+  let activeStatus = 'all';
+
+  function applyFilters() {
+    const q = searchInput.value.trim().toLowerCase();
+    let visibleCount = 0;
+    document.querySelectorAll('#schoolTableBody tr').forEach(function(row) {
+      const matchesStatus = activeStatus === 'all' || row.dataset.status.split(' ').includes(activeStatus);
+      const matchesSearch = !q || row.dataset.search.includes(q);
+      const visible = matchesStatus && matchesSearch;
+      row.classList.toggle('is-hidden', !visible);
+      if (visible) visibleCount++;
+    });
+    emptyState.classList.toggle('show', visibleCount === 0);
+  }
+
+  chips.forEach(function(chip) {
+    chip.addEventListener('click', function() {
+      chips.forEach(function(c) { c.classList.remove('on'); });
+      chip.classList.add('on');
+      activeStatus = chip.dataset.status;
+      applyFilters();
+    });
+  });
+
+  searchInput.addEventListener('input', applyFilters);
+
+  const allocateBtn = document.getElementById('allocateBtn');
+  const allocateOverlay = document.getElementById('allocateOverlay');
+  const allocateModalClose = document.getElementById('allocateModalClose');
+  const allocateModalBody = document.getElementById('allocateModalBody');
+  const allocateModalEmpty = document.getElementById('allocateModalEmpty');
+
+  function openAllocateModal() {
+    const unallocatedSchools = SCHOOLS
+      .map(function(school) {
+        const paidCount = school.delegates.filter(function(d) { return d.status === 'paid'; }).length;
+        return { school: school, paidCount: paidCount };
+      })
+      .filter(function(entry) { return entry.paidCount > 0; });
+
+    allocateModalBody.innerHTML = '';
+    unallocatedSchools.forEach(function(entry) {
+      const item = document.createElement('div');
+      item.className = 'allocate-row';
+      item.dataset.school = entry.school.uni;
+      item.innerHTML =
+        '<div><span class="delegate-name">' + entry.school.uni + '</span><span class="delegate-sub">' +
+        entry.paidCount + (entry.paidCount === 1 ? ' delegate awaiting allocation' : ' delegates awaiting allocation') +
+        '</span></div>' +
+        '<span class="pill circle">' + entry.paidCount + '</span>';
+      allocateModalBody.appendChild(item);
+    });
+    allocateModalEmpty.classList.toggle('show', unallocatedSchools.length === 0);
+    allocateOverlay.classList.add('open');
+  }
+
+  function closeAllocateModal() {
+    allocateOverlay.classList.remove('open');
+  }
+
+  allocateBtn.addEventListener('click', openAllocateModal);
+  allocateModalClose.addEventListener('click', closeAllocateModal);
+  allocateOverlay.addEventListener('click', function(e) {
+    if (e.target === allocateOverlay) closeAllocateModal();
+  });
+
+  allocateModalBody.addEventListener('click', function(e) {
+    const row = e.target.closest('.allocate-row');
+    if (row) {
+      closeAllocateModal();
+      openSchoolModal(row.dataset.school);
+    }
+  });
+
+  const detailOverlay = document.getElementById('detailOverlay');
+  const detailModalClose = document.getElementById('detailModalClose');
+  const detailModalTitle = document.getElementById('detailModalTitle');
+  const detailModalSub = document.getElementById('detailModalSub');
+  const detailStatusRow = document.getElementById('detailStatusRow');
+  const detailGrid = document.getElementById('detailGrid');
+
+  function field(label, value, muted, span2) {
+    return '<div class="detail-field' + (span2 ? ' span-2' : '') + '"><label>' + label + '</label>' +
+      '<div class="value' + (muted ? ' muted' : '') + '">' + value + '</div></div>';
+  }
+
+  function openDetailModal(id) {
+    const d = DELEGATES.find(function(x) { return x.id === id; });
+    if (!d) return;
+    const meta = STATUS_META[d.status];
+    detailModalTitle.textContent = d.name;
+    detailModalSub.textContent = d.uni;
+    detailStatusRow.innerHTML = '<span class="pill ' + meta.pill + '">' + meta.label + '</span>';
+
+    const prefsList = '<ol>' + d.preferences.map(function(p) { return '<li>' + p + '</li>'; }).join('') + '</ol>';
+    const committeeValue = showsCommittee(d) ? d.committee : 'Not yet allocated';
+    const paidValue = d.paid ? 'Paid on ' + d.paid : 'Not yet paid';
+
+    detailGrid.innerHTML =
+      field('Assigned committee', committeeValue, !showsCommittee(d)) +
+      field('Experience', d.experience) +
+      field('Application submitted', d.submitted) +
+      field('Payment', paidValue, !d.paid) +
+      field('Committee preferences', prefsList, false, true);
+
+    detailOverlay.classList.add('open');
+  }
+
+  function closeDetailModal() {
+    detailOverlay.classList.remove('open');
+  }
+
+  detailModalClose.addEventListener('click', closeDetailModal);
+  detailOverlay.addEventListener('click', function(e) {
+    if (e.target === detailOverlay) closeDetailModal();
+  });
+
+  const schoolOverlay = document.getElementById('schoolOverlay');
+  const schoolModalClose = document.getElementById('schoolModalClose');
+  const schoolModalTitle = document.getElementById('schoolModalTitle');
+  const schoolModalSub = document.getElementById('schoolModalSub');
+  const schoolModalBody = document.getElementById('schoolModalBody');
+
+  function openSchoolModal(uni) {
+    const school = SCHOOLS.find(function(s) { return s.uni === uni; });
+    if (!school) return;
+    schoolModalTitle.textContent = school.uni;
+    schoolModalSub.textContent = school.delegates.length + (school.delegates.length === 1 ? ' delegate' : ' delegates');
+    schoolModalBody.innerHTML = '';
+    school.delegates.forEach(function(d) {
+      const meta = STATUS_META[d.status];
+      const item = document.createElement('div');
+      item.className = 'allocate-row';
+      item.dataset.id = d.id;
+      item.innerHTML =
+        '<div><span class="delegate-name">' + d.name + '</span><span class="delegate-sub">' + (showsCommittee(d) ? d.committee : 'Not yet allocated') + '</span></div>' +
+        '<span class="pill ' + meta.pill + '">' + meta.label + '</span>';
+      schoolModalBody.appendChild(item);
+    });
+    schoolOverlay.classList.add('open');
+  }
+
+  function closeSchoolModal() {
+    schoolOverlay.classList.remove('open');
+  }
+
+  schoolTableBody.addEventListener('click', function(e) {
+    const row = e.target.closest('tr[data-school]');
+    if (row) openSchoolModal(row.dataset.school);
+  });
+
+  schoolModalBody.addEventListener('click', function(e) {
+    const row = e.target.closest('.allocate-row');
+    if (row) {
+      closeSchoolModal();
+      openDetailModal(Number(row.dataset.id));
+    }
+  });
+
+  schoolModalClose.addEventListener('click', closeSchoolModal);
+  schoolOverlay.addEventListener('click', function(e) {
+    if (e.target === schoolOverlay) closeSchoolModal();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeAllocateModal();
+      closeDetailModal();
+      closeSchoolModal();
+    }
+  });
+</script>
+
+</body>
+</html>
