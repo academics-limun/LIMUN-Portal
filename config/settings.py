@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 from pathlib import Path
 
+from .env import get_config
+
+cfg = get_config()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -22,8 +26,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-i2+gs(y=@m*awb-d=$1o%#^p0d*w_je5y0)&jndgma0$zwc)1w'
 
+if cfg.SECRET_KEY != "nil":
+    SECRET_KEY = cfg.SECRET_KEY
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = cfg.DEBUG
 
 ALLOWED_HOSTS = []
 
@@ -72,10 +79,22 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
+# NOTE: change to this for using Supabase (postgres)
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": cfg.database.name,
+#         "USER": cfg.database.user,
+#         "PASSWORD": cfg.database.password,
+#         "HOST": cfg.database.host,
+#         "PORT": cfg.database.port,
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
