@@ -23,6 +23,7 @@ staticfiles/
 
 # Environment variables
 .env
+.env.*
 
 # IDE/editor settings
 idea/
