@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 @dataclass(frozen=True)
 class DatabaseConfig:
     name: str
@@ -16,7 +17,6 @@ class SupabaseConfig:
 @dataclass(frozen=True)
 class AppConfig:
     DEBUG: bool
-    SECRET_KEY: str
 
     database: DatabaseConfig
     supabase: SupabaseConfig

@@ -4,14 +4,11 @@ from dotenv import load_dotenv
 
 from .config import AppConfig, DatabaseConfig, SupabaseConfig
 
-
 load_dotenv()
 
 def get_config() -> AppConfig:
     return AppConfig(
         DEBUG=os.getenv("DEBUG", "False") == "True",
-        SECRET_KEY=os.getenv("SECRET_KEY", "nil"),
-        
         database=DatabaseConfig(
             host=os.environ["DB_HOST"],
             port=int(os.environ["DB_PORT"]),
