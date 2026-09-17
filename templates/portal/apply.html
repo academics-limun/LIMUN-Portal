@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<title>Apply - {{ event.name }}</title>
+</head>
+
+<body>
+	<main>
+		<h1>Apply for {{ event.name }}</h1>
+
+		<form method="post" enctype="multipart/form-data">
+
+			{% csrf_token %}
+
+			{{ form.non_field_errors }}
+
+			<!-- Name -->
+			<div>
+				{{ form.name.label_tag }}
+				{{ form.name }}
+
+				{% for error in form.name.errors %}
+				<p>{{ error }}</p>
+				{% endfor %}
+			</div>
+
+			<!-- Email -->
+			<div>
+				{{ form.email.label_tag }}
+				{{ form.email }}
+
+				{% for error in form.email.errors %}
+				<p>{{ error }}</p>
+				{% endfor %}
+			</div>
+
+			<!-- Dynamic questions -->
+			{% for field in form %}
+			{% if field.name|slice:":9" == "question_" %}
+			<div>
+				{{ field.label_tag }}
+				{{ field }}
+
+				{% for error in field.errors %}
+				<p>{{ error }}</p>
+				{% endfor %}
+			</div>
+			{% endif %}
+			{% endfor %}
+
+			<!-- Previous work -->
+			<div>
+				{{ form.files.label_tag }}
+				{{ form.files }}
+
+				<p>
+					You may upload up to 5 files.
+				</p>
+
+				{% for error in form.files.errors %}
+				<p>{{ error }}</p>
+				{% endfor %}
+			</div>
+
+			<button type="submit">
+				Submit application
+			</button>
+
+		</form>
+	</main>
+
+</body>
+
+</html>

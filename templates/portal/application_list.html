@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Applications</title>
+</head>
+
+<body>
+
+	<h1>Applications</h1>
+
+	{% if events %}
+
+	<p>
+		Applications are currently open for:
+	</p>
+
+	<ul>
+		{% for event in events %}
+		<li>
+			<h2>{{ event.name }}</h2>
+
+			<a href="{% url 'application_form' event_slug=event.slug %}">
+				Apply
+			</a>
+		</li>
+		{% endfor %}
+	</ul>
+
+	{% else %}
+
+	<p>
+		There are currently no applications open.
+	</p>
+
+	{% endif %}
+
+</body>
+
+</html>

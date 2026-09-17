@@ -16,7 +16,6 @@ def get_config() -> AppConfig:
             user=os.environ["DB_USER"],
             password=os.environ["DB_PASSWORD"],
         ),
-
         supabase=SupabaseConfig(
             url=os.environ["SUPABASE_URL"],
             key=os.environ["SUPABASE_KEY"]
