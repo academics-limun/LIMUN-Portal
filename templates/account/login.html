@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Sign in</h1>
+
+<form method="post" action="{% url 'account_login' %}">
+	{% csrf_token %}
+
+	{{ form.non_field_errors }}
+
+	<div>
+		{{ form.login.label_tag }}
+		{{ form.login }}
+		{{ form.login.errors }}
+	</div>
+
+	<div>
+		{{ form.password.label_tag }}
+		{{ form.password }}
+		{{ form.password.errors }}
+	</div>
+
+	{% if redirect_field_value %}
+	<input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+	{% endif %}
+
+	<button type="submit">
+		Sign in
+	</button>
+</form>
+
+<p>
+	<a href="{% url 'account_reset_password' %}">
+		Forgot your password?
+	</a>
+</p>
+
+<p>
+	Don't have an account?
+	<a href="{% url 'account_signup' %}">
+		Create one
+	</a>
+</p>
+
+{% endblock %}

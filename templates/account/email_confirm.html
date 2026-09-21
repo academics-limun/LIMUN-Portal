@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Verify your email</h1>
+
+{% if confirmation %}
+
+<p>
+	Please confirm that
+	<strong>{{ confirmation.email_address.email }}</strong>
+	is your email address.
+</p>
+
+<form method="post">
+	{% csrf_token %}
+
+	<button type="submit">
+		Confirm email
+	</button>
+</form>
+
+{% else %}
+
+<p>
+	This verification link is invalid or has expired.
+</p>
+
+{% endif %}
+
+{% endblock %}

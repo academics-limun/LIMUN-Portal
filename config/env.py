@@ -1,10 +1,13 @@
+import logging
 import os
 
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
 from .config import AppConfig, DatabaseConfig, SupabaseConfig
 
-load_dotenv()
+logger = logging.getLogger(__name__)
+
+load_dotenv(find_dotenv("../.env"), override=True, verbose=True)
 
 def get_config() -> AppConfig:
     return AppConfig(

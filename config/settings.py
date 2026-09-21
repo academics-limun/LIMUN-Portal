@@ -46,6 +46,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'allauth',
+    'allauth.account',
+
     'portal'
 ]
 
@@ -57,6 +60,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -81,19 +86,6 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
-
-# NOTE: change to this for using Supabase (postgres)
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": cfg.database.name,
-#         "USER": cfg.database.user,
-#         "PASSWORD": cfg.database.password,
-#         "HOST": cfg.database.host,
-#         "PORT": cfg.database.port,
-#     }
-# }
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -134,13 +126,10 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
-
 STATIC_URL = 'static/'
-
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
-
 MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
@@ -148,6 +137,13 @@ MAILERS = {
 }
 
 
-
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
+
+# allauth settings
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+
+AUTHENTICATION_BACKENDS = [
+    "allauth.account.auth_backends.AuthenticationBackend",
+]

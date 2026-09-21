@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Create an account</h1>
+
+<form method="post" action="{% url 'account_signup' %}">
+	{% csrf_token %}
+
+	{{ form.non_field_errors }}
+
+	{% for field in form %}
+	<div>
+		{{ field.label_tag }}
+		{{ field }}
+		{{ field.errors }}
+	</div>
+	{% endfor %}
+
+	<button type="submit">
+		Create account
+	</button>
+</form>
+
+<p>
+	Already have an account?
+	<a href="{% url 'account_login' %}">
+		Sign in
+	</a>
+</p>
+
+{% endblock %}

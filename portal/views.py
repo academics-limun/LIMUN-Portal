@@ -50,6 +50,7 @@ def apply(request, event_slug):
             for uploaded_file in form.cleaned_data["files"]:
                 PortfolioFile.objects.create(
                     application=application,
+                    original_filename=uploaded_file.name,
                     file=uploaded_file,
                 )
 

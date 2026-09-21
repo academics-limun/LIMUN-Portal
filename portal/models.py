@@ -1,3 +1,6 @@
+from pathlib import Path
+from uuid import uuid4
+
 from django.db import models
 
 # Create your models here.
@@ -65,15 +68,31 @@ class Answer(models.Model):
     def __str__(self):
         return f"{self.application} - {self.question}"
 
+def portfolio_upload_path(instance, filename):
+    application = instance.application
+
+    uid = uuid4()
+    ext = Path(filename).suffix
+
+    return (
+        "media/applications/"
+        f"{application.event.slug}"
+        f"user-{application.user_id}"
+        f"{uid}{ext}"
+    )
+
 
 class PortfolioFile(models.Model):
     application = models.ForeignKey(
         Application,
         on_delete=models.CASCADE,
-        related_name="files",
+        related_name="portfolio_files",
+    )
+    original_filename = models.CharField(
+        max_length=255
     )
     file = models.FileField(
-        upload_to="applications/%Y/%m/",
+        upload_to=portfolio_upload_path
     )
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
