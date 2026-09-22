@@ -20,6 +20,8 @@ cfg = get_config()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
@@ -47,9 +49,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'allauth',
-    'allauth.account',
+    'allauth.socialaccount',
 
-    'portal'
+    'apps.accounts',
+    'apps.portal'
 ]
 
 MIDDLEWARE = [
@@ -127,12 +130,22 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 MAILERS = {
     'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+        'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+        'OPTIONS': {
+            "host": "smtp.gmail.com",
+            "use_tls": True,
+            "username": cfg.email.email,
+            "password": cfg.email.password
+        },
+    },
+    "console": {  # For debugging
+        "BACKEND": "django.core.mail.backends.console.EmailBackend",
     },
 }
 
@@ -141,7 +154,10 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
 
 # allauth settings
+AUTH_USER_MODEL = "accounts.User"
+
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
 AUTHENTICATION_BACKENDS = [

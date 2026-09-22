@@ -1,6 +1,7 @@
 from pathlib import Path
 from uuid import uuid4
 
+from django.conf import settings
 from django.db import models
 
 # Create your models here.
@@ -40,17 +41,20 @@ class Question(models.Model):
 
 
 class Application(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="applications"
+    )
     event = models.ForeignKey(
         Event,
         on_delete=models.CASCADE,
         related_name="applications",
     )
-    name = models.CharField(max_length=100)
-    email = models.EmailField()
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.name} - {self.event}"
+        return f"{self.user.name} - {self.event}"
 
 
 class Answer(models.Model):

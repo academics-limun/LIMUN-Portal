@@ -10,6 +10,11 @@ class DatabaseConfig:
     port: int
 
 @dataclass(frozen=True)
+class EmailConfig:
+    email: str
+    password: str
+
+@dataclass(frozen=True)
 class SupabaseConfig:
     url: str
     key: str
@@ -19,4 +24,5 @@ class AppConfig:
     DEBUG: bool
 
     database: DatabaseConfig
+    email: EmailConfig
     supabase: SupabaseConfig

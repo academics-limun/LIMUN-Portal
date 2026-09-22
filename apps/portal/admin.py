@@ -47,8 +47,7 @@ class PortfolioFileInline(admin.TabularInline):
 @admin.register(Application)
 class ApplicationAdmin(admin.ModelAdmin):
     list_display = (
-        "name",
-        "email",
+        "user",
         "event",
         "submitted_at",
     )
@@ -56,13 +55,11 @@ class ApplicationAdmin(admin.ModelAdmin):
     list_filter = ("event", "submitted_at")
 
     search_fields = (
-        "name",
-        "email",
+        "user",
     )
 
     readonly_fields = (
-        "name",
-        "email",
+        "user",
         "event",
         "submitted_at",
     )
